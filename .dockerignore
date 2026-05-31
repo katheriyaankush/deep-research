@@ -1,0 +1,9 @@
+.venv
+__pycache__
+*.pyc
+*.pyo
+.env
+.python-version
+*.txt.bak
+requirements copy.txt
+README.md

@@ -1,0 +1,9 @@
+fastapi==0.115.12
+uvicorn==0.34.3
+python-dotenv==1.1.0
+openai==1.85.0
+openai-agents==0.0.17
+pydantic==2.11.5
+sendgrid==6.12.3
+ddgs
+httpx==0.28.1
