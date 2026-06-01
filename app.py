@@ -1,6 +1,8 @@
 import os
+import json
 import logging
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -19,9 +21,19 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# Allow frontend to consume the API from any origin
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 class ResearchRequest(BaseModel):
     query: str
+    email: str
 
 
 @app.get("/")
@@ -33,18 +45,27 @@ async def root():
 async def research(request: ResearchRequest):
     """
     Run deep research on a given query.
-    Streams status updates and the final markdown report as Server-Sent Events.
+    Streams structured JSON events via Server-Sent Events (SSE).
+
+    Event types:
+    - status: Progress updates (planning, searching, writing, etc.)
+    - search_plan: The planned search queries
+    - search_progress: Individual search completion updates
+    - report: The final research report with summary and follow-up questions
+    - error: Any errors that occurred
+    - done: Research complete signal
     """
     async def stream():
-        async for chunk in ResearchManager().run(request.query):
-            # Format as Server-Sent Events (SSE)
-            yield f"data: {chunk}\n\n"
+        async for event in ResearchManager().run(request.query, request.email):
+            # Each event is already a dict from ResearchManager
+            yield f"event: {event['type']}\ndata: {json.dumps(event['data'])}\n\n"
 
     return StreamingResponse(
         stream(),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
             "X-Accel-Buffering": "no",
         },
     )

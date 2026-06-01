@@ -2,7 +2,7 @@
 title: Deep Research API
 emoji: 🔬
 colorFrom: blue
-colorTo: sky
+colorTo: indigo
 sdk: docker
 pinned: false
 ---
